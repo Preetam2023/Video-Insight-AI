@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Insight AI | Transform Videos into Knowledge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-brain-circuit"></i>
+                <span>Video Insight AI</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">How It Works</a></li>
+                    <li><a href="#">Pricing</a></li>
+                </ul>
+            </nav>
+            <button class="cta-button">Get Started</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Transform Videos into Actionable Knowledge</h1>
+            <p>Upload a video or paste a YouTube link to generate summaries, notes, quizzes, and Q&A automatically.</p>
+        </div>
+    </section>
+
+    <!-- Input Section -->
+    <main class="container">
+        <section class="input-section">
+            <h2 class="input-title">Start Analyzing Your Video</h2>
+            <div class="input-container">
+                <div class="url-input">
+                    <input type="text" id="video-url" placeholder="Paste YouTube video URL here...">
+                    <button class="cta-button" id="process-btn">Process</button>
+                </div>
+
+                <div class="or-divider">OR</div>
+
+                <div class="file-upload" id="upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Upload Video File</p>
+                    <span>MP4, MOV, AVI up to 500MB</span>
+                    <input type="file" id="file-input" accept="video/*" hidden>
+                </div>
+            </div>
+
+            <div id="upload-status"></div>
+        </section>
+
+        <!-- Options Section -->
+        <section class="options-section" id="options-section">
+            <h2 class="options-title">Choose Your Analysis Type</h2>
+            <div class="options-grid">
+                <div class="option-card" data-option="summary">
+                    <div class="option-icon"><i class="fas fa-file-alt"></i></div>
+                    <h3>Video Summarization</h3>
+                    <p>Get concise summaries of your video content.</p>
+                </div>
+
+                <div class="option-card" data-option="notes">
+                    <div class="option-icon"><i class="fas fa-sticky-note"></i></div>
+                    <h3>Make Notes</h3>
+                    <p>Generate structured notes from your video.</p>
+                </div>
+
+                <div class="option-card" data-option="quiz">
+                    <div class="option-icon"><i class="fas fa-question-circle"></i></div>
+                    <h3>Quiz Generation</h3>
+                    <p>Create quizzes to test your understanding.</p>
+                </div>
+
+                <div class="option-card" data-option="qna">
+                    <div class="option-icon"><i class="fas fa-comments"></i></div>
+                    <h3>Q&A Session</h3>
+                    <p>Ask questions and get instant AI answers.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <h2 class="features-title">Why Choose Video Insight AI?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Lightning Fast Processing</h3>
+                        <p>Our AI processes videos in minutes, delivering results faster than any other platform.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Secure & Private</h3>
+                        <p>Your videos and data are encrypted and never shared with third parties.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Accurate Results</h3>
+                        <p>Our advanced AI models deliver precise summaries, notes, and answers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-brain-circuit"></i>
+                <span>Video Insight AI</span>
+            </div>
+
+            <div class="footer-links">
+                <a href="#">About</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact</a>
+            </div>
+
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+
+            <p class="copyright">© 2025 Video Insight AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+</body>
+</html>
