@@ -1,22 +1,19 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, jsonify
 import os
+from utils.video_processing.video_to_audio import download_audio_from_youtube, split_audio_to_chunks
+from utils.video_processing.audio_to_text import (
+    get_youtube_transcript,
+    save_youtube_transcript,
+    transcribe_audio_to_text,
+    cleanup_temp
+)
 
-# Import utility modules
-# from utils.video_to_text.video_to_audio import convert_video_to_audio
-# from utils.video_to_text.audio_to_text import convert_audio_to_text
-# from utils.text_preprocessing.cleaner import clean_text
-# from utils.text_preprocessing.chunker import chunk_text
-# from utils.llm_features.summarizer import generate_summary
-# from utils.llm_features.notes_generator import generate_notes
-# from utils.llm_features.quiz_maker import generate_quiz
-# from utils.llm_features.qna import answer_question
 
 app = Flask(__name__)
 
-# Folder to store uploaded files
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+# Create necessary directories
+os.makedirs("data/uploads", exist_ok=True)
+os.makedirs("data/transcripts", exist_ok=True)
 
 # ------------------- ROUTES -------------------
 
@@ -25,73 +22,52 @@ def home():
     """Home Page"""
     return render_template('home.html')
 
+@app.route('/process', methods=['POST'])
+def process_video():
+    """Handles both YouTube link and uploaded video file."""
+    youtube_url = request.form.get('video_url')
+    file = request.files.get('video_file')
 
-@app.route('/upload', methods=['POST'])
-def upload_video():
-    """Handles video upload or YouTube link input"""
-    video_file = request.files.get('video')
-    video_url = request.form.get('video_url')
+    try:
+        transcript_path = None
 
-    if video_file:
-        # Save uploaded file
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], video_file.filename)
-        video_file.save(filepath)
-        audio_path = convert_video_to_audio(filepath)
-        text = convert_audio_to_text(audio_path)
-    elif video_url:
-        # (Later: handle YouTube download using pytube)
-        return jsonify({"message": "YouTube link processing coming soon!"})
-    else:
-        return jsonify({"error": "No video or link provided!"}), 400
+        # === Case 1: YouTube URL provided ===
+        if youtube_url:
+            print("[INFO] YouTube URL received, attempting transcript fetch...")
+            text = get_youtube_transcript(youtube_url)
 
-    # Preprocess the text
-    cleaned = clean_text(text)
-    chunks = chunk_text(cleaned)
+            if text:
+                # Captions available then save directly
+                transcript_path = save_youtube_transcript(text)
+            else:
+                # No captions then fallback to Whisper
+                print("[INFO] Captions not available, using Whisper fallback...")
+                audio_path = download_audio_from_youtube(youtube_url)
+                chunks = split_audio_to_chunks(audio_path)
+                transcript_path = transcribe_audio_to_text(chunks)
+                cleanup_temp()
 
-    # Store for LLM features
-    with open("processed_text.txt", "w", encoding="utf-8") as f:
-        f.write(cleaned)
+        # === Case 2: Uploaded video file ===
+        elif file:
+            print("[INFO] Uploaded video file received, processing...")
+            upload_dir = "data/uploads"
+            os.makedirs(upload_dir, exist_ok=True)
+            upload_path = os.path.join(upload_dir, file.filename)
+            file.save(upload_path)
 
-    return render_template('summary.html', text=cleaned[:1500])  # preview part of text
+            chunks = split_audio_to_chunks(upload_path)
+            transcript_path = transcribe_audio_to_text(chunks)
+            cleanup_temp()
 
+        else:
+            return jsonify({'status': 'error', 'message': 'No video or URL provided.'}), 400
 
-@app.route('/summary')
-def summary_page():
-    """Generate and display summary"""
-    with open("processed_text.txt", "r", encoding="utf-8") as f:
-        text = f.read()
-    summary = generate_summary(text)
-    return render_template('summary.html', summary=summary)
+        return jsonify({'status': 'success', 'transcript': transcript_path})
 
+    except Exception as e:
+        print(f"[ERROR] Processing failed: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/notes')
-def notes_page():
-    """Generate and display notes"""
-    with open("processed_text.txt", "r", encoding="utf-8") as f:
-        text = f.read()
-    notes = generate_notes(text)
-    return render_template('notes.html', notes=notes)
-
-
-@app.route('/quiz')
-def quiz_page():
-    """Generate quiz questions"""
-    with open("processed_text.txt", "r", encoding="utf-8") as f:
-        text = f.read()
-    quiz = generate_quiz(text)
-    return render_template('quiz.html', quiz=quiz)
-
-
-@app.route('/qna', methods=['GET', 'POST'])
-def qna_page():
-    """Interactive Q&A system"""
-    if request.method == 'POST':
-        question = request.form.get('question')
-        with open("processed_text.txt", "r", encoding="utf-8") as f:
-            text = f.read()
-        answer = answer_question(text, question)
-        return render_template('qna.html', question=question, answer=answer)
-    return render_template('qna.html')
 
 # ------------------- MAIN -------------------
 if __name__ == '__main__':
