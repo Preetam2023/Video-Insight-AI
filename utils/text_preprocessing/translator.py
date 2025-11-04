@@ -4,19 +4,23 @@ from googletrans import Translator
 # Initialize translator
 translator = Translator()
 
-# Define file paths
-input_path = r"C:\Users\SHEIKH SAIKAT AHMED\OneDrive\Desktop\Soft Computing Project\data\transcripts\transcript.txt"
-output_path = r"C:\Users\SHEIKH SAIKAT AHMED\OneDrive\Desktop\Soft Computing Project\data\transcripts\transcript_english.txt"
+# Dynamically find the base directory (project root)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# ↑ This goes up 3 folders from utils/text_preprocessing/translator.py
 
-# Read the transcript
+# Define relative paths
+input_path = os.path.join(BASE_DIR, "data", "transcripts", "transcript.txt")
+output_path = os.path.join(BASE_DIR, "data", "transcripts", "transcript_english.txt")
+
+# Read transcript
 with open(input_path, "r", encoding="utf-8") as f:
     text = f.read()
 
 # Detect language
-detected = translator.detect(text[:5000])  # only check first 5000 chars for speed
+detected = translator.detect(text[:5000])
 print(f"Detected language: {detected.lang}")
 
-# Split text into smaller chunks (to avoid API length errors)
+# Split large text into chunks (for API safety)
 def split_text(text, max_chars=4000):
     return [text[i:i+max_chars] for i in range(0, len(text), max_chars)]
 
@@ -35,8 +39,9 @@ else:
     print("Text already in English.")
     english_text = text
 
-# Save to new file
+# Save translated text
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(english_text)
 
-print(f"✅ Translation completed! Saved as: {output_path}")
+print(f"Translation completed! Saved at: {output_path}")
