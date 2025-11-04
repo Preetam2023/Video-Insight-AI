@@ -7,7 +7,7 @@ from utils.video_processing.audio_to_text import (
     transcribe_audio_to_text,
     cleanup_temp
 )
-
+from utils.text_preprocessing.translator import translate_to_eng
 
 app = Flask(__name__)
 
@@ -62,7 +62,9 @@ def process_video():
         else:
             return jsonify({'status': 'error', 'message': 'No video or URL provided.'}), 400
 
-        return jsonify({'status': 'success', 'transcript': transcript_path})
+        
+        output_path = translate_to_eng(transcript_path)
+        return jsonify({'status': 'success', 'transcript': output_path})
 
     except Exception as e:
         print(f"[ERROR] Processing failed: {e}")
