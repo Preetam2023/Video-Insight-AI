@@ -78,4 +78,3 @@ def chunk_and_save(input_path, max_chars=1000, overlap=100):
 #     chunk_and_save(input_file)
 
 
-chunk_and_save(r"C:\Users\SHEIKH SAIKAT AHMED\OneDrive\Desktop\Soft Computing Project\data\transcripts\transcript_cleaned.txt")
