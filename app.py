@@ -9,6 +9,7 @@ from utils.video_processing.audio_to_text import (
 )
 from utils.text_preprocessing.translator import translate_to_eng
 from utils.text_preprocessing.cleaner import clean_and_save_transcript
+from utils.text_preprocessing.chunker import chunk_and_save
 
 app = Flask(__name__)
 
@@ -68,7 +69,16 @@ def process_video():
 
         # cleaning english text
         cleaned_path = clean_and_save_transcript(output_path)
-        return jsonify({'status': 'success', 'clean': cleaned_path})
+
+        # chunk cleaned transcript
+        chunks_dir = chunk_and_save(cleaned_path)
+
+        return jsonify({
+            'status': 'success',
+            'clean': cleaned_path,
+            'chunks_dir': chunks_dir
+        })
+
 
     except Exception as e:
         print(f"[ERROR] Processing failed: {e}")
