@@ -28,7 +28,7 @@ def translate_to_eng(transcript_path):
                 try:
                     translated = translator.translate(chunk, dest='en')
                     translated_chunks.append(translated.text)
-                    print(f"[INFO] ✅ Translated chunk {i+1}/{len(chunks)}")
+                    print(f"[INFO]  Translated chunk {i+1}/{len(chunks)}")
                     break
                 except Exception as e:
                     print(f"[WARN] Chunk {i+1} retry {attempt+1}/3 failed: {e}")
@@ -43,10 +43,10 @@ def translate_to_eng(transcript_path):
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(english_text)
 
-        print(f"[INFO] ✅ English transcript saved at: {output_path}")
+        print(f"[INFO]  English transcript saved at: {output_path}")
         return output_path
 
     except Exception as e:
-        print(f"❌ Error during translation: {e}")
+        print(f" Error during translation: {e}")
         return transcript_path  # fallback
 
