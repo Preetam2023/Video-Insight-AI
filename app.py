@@ -10,6 +10,7 @@ from utils.video_processing.audio_to_text import (
 from utils.text_preprocessing.translator import translate_to_eng
 from utils.text_preprocessing.cleaner import clean_and_save_transcript
 from utils.text_preprocessing.chunker import chunk_and_save
+from utils.text_preprocessing.vectorizer import vectorize_chunks
 
 app = Flask(__name__)
 
@@ -73,11 +74,16 @@ def process_video():
         # chunk cleaned transcript
         chunks_dir = chunk_and_save(cleaned_path)
 
+        # Vectorize chunks
+        vectorized_path = vectorize_chunks(chunks_dir)
+
         return jsonify({
             'status': 'success',
             'clean': cleaned_path,
-            'chunks_dir': chunks_dir
+            'chunks_dir': chunks_dir,
+            'vectorized_file': vectorized_path
         })
+
 
 
     except Exception as e:
