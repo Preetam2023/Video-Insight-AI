@@ -81,22 +81,52 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   
-    // ---------------- OPTION CARDS INTERACTION ----------------
-    const optionCards = document.querySelectorAll(".option-card");
-  
-    optionCards.forEach((card) => {
-      card.addEventListener("click", () => {
-        optionCards.forEach((c) => c.classList.remove("active"));
-        card.classList.add("active");
-  
-        const option = card.getAttribute("data-option");
-        uploadStatus.innerHTML = `<p style="color: var(--primary); text-align: center; margin-top: 10px;"><i class="fas fa-sync fa-spin"></i> Generating ${option}... Please wait.</p>`;
-  
-        setTimeout(() => {
-          uploadStatus.innerHTML = `<p style="color: var(--accent); text-align: center; margin-top: 10px;"><i class="fas fa-check-circle"></i> ${getOptionName(option)} generated successfully!</p>`;
-        }, 3000);
-      });
-    });
+// ---------------- OPTION CARDS INTERACTION ----------------
+const optionCards = document.querySelectorAll(".option-card");
+
+optionCards.forEach((card) => {
+  card.addEventListener("click", async () => {
+    optionCards.forEach((c) => c.classList.remove("active"));
+    card.classList.add("active");
+
+    const option = card.getAttribute("data-option");
+    uploadStatus.innerHTML = `
+      <p style="color: var(--primary); text-align: center; margin-top: 10px;">
+        <i class="fas fa-sync fa-spin"></i> Generating ${getOptionName(option)}... Please wait.
+      </p>`;
+
+    try {
+      let endpoint = "";
+      if (option === "summary") endpoint = "/summarize";
+      else if (option === "notes") endpoint = "/generate_notes";
+      else if (option === "quiz") endpoint = "/generate_quiz";
+      else if (option === "qna") endpoint = "/generate_qna";
+      else return;
+
+      const res = await fetch(endpoint, { method: "POST" });
+      const data = await res.json();
+
+      let outputContent = "";
+      if (data.summary) outputContent = data.summary;
+      else if (data.notes) outputContent = data.notes;
+      else if (data.quiz) outputContent = data.quiz;
+      else if (data.answer) outputContent = data.answer;
+      else outputContent = "No content returned.";
+
+      uploadStatus.innerHTML = `
+        <div style="margin-top: 15px; padding: 15px; background: #f8f8ff; border-radius: 10px;">
+          <h3 style="color: var(--primary); text-align:center;">${getOptionName(option)}</h3>
+          <pre style="white-space: pre-wrap; text-align: left; line-height: 1.5;">${outputContent}</pre>
+        </div>`;
+    } catch (err) {
+      uploadStatus.innerHTML = `
+        <p style="color: var(--secondary); text-align: center; margin-top: 10px;">
+          <i class="fas fa-exclamation-triangle"></i> Error: ${err.message}
+        </p>`;
+    }
+  });
+});
+
   
     function getOptionName(option) {
       switch (option) {

@@ -77,4 +77,3 @@ def chunk_and_save(input_path, max_chars=1000, overlap=100):
 #     input_file = os.path.join("data", "transcripts", "transcript_cleaned.txt")
 #     chunk_and_save(input_file)
 
-

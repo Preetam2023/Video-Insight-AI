@@ -1,3 +1,5 @@
+# utils/llm_features/vectorizer.py
+
 import os
 import pickle
 from sentence_transformers import SentenceTransformer
@@ -5,7 +7,7 @@ from sentence_transformers import SentenceTransformer
 def vectorize_chunks(chunk_dir):
     """
     Vectorizes all text chunks from the given chunk_dir using SentenceTransformer.
-    Saves a single embeddings.pkl file in the same folder and deletes text chunks afterward.
+    Saves a single embeddings.pkl file in the same folder and PRESERVES text chunks.
     """
     # Load embedding model
     model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -34,11 +36,10 @@ def vectorize_chunks(chunk_dir):
 
     print(f"Embeddings saved successfully to: {output_path}")
 
-    # Clean up text chunk files after vectorization
-    for filename in txt_files:
-        os.remove(os.path.join(chunk_dir, filename))
-    print("All text chunk files deleted after vectorization.")
-
+    # ✅ PRESERVING text chunk files (commented out deletion)
+    # Text chunks are kept for summarization, notes generation, etc.
+    print("Text chunks preserved for summarization and other features.")
+    
     return output_path
 
 # Example usage:

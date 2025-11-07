@@ -1,5 +1,8 @@
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
 import os
+import logging
+
 from utils.video_processing.video_to_audio import download_audio_from_youtube, split_audio_to_chunks
 from utils.video_processing.audio_to_text import (
     get_youtube_transcript,
@@ -11,6 +14,13 @@ from utils.text_preprocessing.translator import translate_to_eng
 from utils.text_preprocessing.cleaner import clean_and_save_transcript
 from utils.text_preprocessing.chunker import chunk_and_save
 from utils.text_preprocessing.vectorizer import vectorize_chunks
+from utils.llm_features.summarizer import generate_summary
+from utils.llm_features.notes_generator import generate_detailed_notes
+
+load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -90,7 +100,61 @@ def process_video():
         print(f"[ERROR] Processing failed: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-
+@app.route('/summarize', methods=['POST'])
+def summarize_video():
+    try:
+        logger.info("Starting DIRECT transcript summarization")  # Changed this line
+        
+        # Generate summary using direct transcript processing
+        from utils.llm_features.summarizer import generate_summary
+        summary = generate_summary()
+        
+        word_count = len(summary.split())
+        logger.info(f"Summary generated: {word_count} words")
+        
+        # Save summary to file
+        summary_path = "data/transcripts/summary.txt"
+        os.makedirs("data/transcripts", exist_ok=True)
+        with open(summary_path, "w", encoding="utf-8") as f:
+            f.write(summary)
+        
+        return jsonify({
+            "summary": summary,
+            "status": "success",
+            "word_count": word_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in summarize_video route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/generate_notes', methods=['POST'])
+def generate_notes():
+    try:
+        logger.info("Starting detailed notes generation from transcript")
+        
+        # Generate notes using the notes generator
+        from utils.llm_features.notes_generator import generate_detailed_notes
+        notes = generate_detailed_notes()
+        
+        word_count = len(notes.split())
+        logger.info(f"Detailed notes generated: {word_count} words")
+        
+        # Save notes to file
+        notes_path = "data/transcripts/detailed_notes.txt"
+        os.makedirs("data/transcripts", exist_ok=True)
+        with open(notes_path, "w", encoding="utf-8") as f:
+            f.write(notes)
+        
+        return jsonify({
+            "notes": notes,
+            "status": "success",
+            "word_count": word_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in generate_notes route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 # ------------------- MAIN -------------------
 if __name__ == '__main__':
     app.run(debug=True)

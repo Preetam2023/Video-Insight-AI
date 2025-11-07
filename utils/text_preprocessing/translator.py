@@ -49,4 +49,3 @@ def translate_to_eng(transcript_path):
     except Exception as e:
         print(f" Error during translation: {e}")
         return transcript_path  # fallback
-
