@@ -6,6 +6,7 @@
     <title>Video Insight AI | Transform Videos into Knowledge</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -25,10 +26,11 @@
             </div>
             <nav>
                 <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Features</a></li>
-                    <li><a href="#">How It Works</a></li>
-                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
             <button class="cta-button">Get Started</button>
@@ -36,10 +38,41 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" id="home">
         <div class="container">
-            <h1>Transform Videos into Actionable Knowledge</h1>
-            <p>Upload a video or paste a YouTube link to generate summaries, notes, quizzes, and Q&A automatically.</p>
+            <div class="hero-content">
+                <h1>Transform Videos into <span class="highlight">Actionable Knowledge</span></h1>
+                <p>Upload a video or paste a YouTube link to generate transcripts, summaries, notes, and Q&A automatically with our advanced AI technology.</p>
+                <div class="hero-buttons">
+                    <button class="cta-button primary">Try It Free</button>
+                    <button class="cta-button secondary">Watch Demo</button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-card card-1">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Transcript</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Summary</span>
+                </div>
+                <div class="floating-card card-3">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>Notes</span>
+                </div>
+                <div class="floating-card card-4">
+                    <i class="fas fa-comments"></i>
+                    <span>Q&A</span>
+                </div>
+                <div class="main-visual">
+                    <div class="video-preview">
+                        <div class="play-button">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -70,40 +103,81 @@
         <section class="options-section" id="options-section">
             <h2 class="options-title">Choose Your Analysis Type</h2>
             <div class="options-grid">
-                <div class="option-card" data-option="summary">
+                <a href="{{ url_for('transcript') }}" class="option-card" data-option="transcript">
                     <div class="option-icon"><i class="fas fa-file-alt"></i></div>
+                    <h3>Video Transcript</h3>
+                    <p>Get accurate transcript of your video content.</p>
+                </a>
+
+                <a href="{{ url_for('summarize_page') }}" class="option-card" data-option="summary">
+                    <div class="option-icon"><i class="fas fa-chart-pie"></i></div>
                     <h3>Video Summarization</h3>
                     <p>Get concise summaries of your video content.</p>
-                </div>
+                </a>
 
-                <div class="option-card" data-option="notes">
+                <a href="{{ url_for('notes') }}" class="option-card" data-option="notes">
                     <div class="option-icon"><i class="fas fa-sticky-note"></i></div>
                     <h3>Make Notes</h3>
                     <p>Generate structured notes from your video.</p>
-                </div>
+                </a>
 
-                <div class="option-card" data-option="quiz">
-                    <div class="option-icon"><i class="fas fa-question-circle"></i></div>
-                    <h3>Quiz Generation</h3>
-                    <p>Create quizzes to test your understanding.</p>
-                </div>
-
-                <div class="option-card" data-option="qna">
+                <a href="{{ url_for('qna') }}" class="option-card" data-option="qna">
                     <div class="option-icon"><i class="fas fa-comments"></i></div>
                     <h3>Q&A Session</h3>
                     <p>Ask questions and get instant AI answers.</p>
-                </div>
+                </a>
             </div>
             <section id="result-section" class="container">
                 <h2>Result</h2>
                 <div id="result-content"></div>
             </section>
-            
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="how-it-works" id="how-it-works">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3>Upload Video</h3>
+                    <p>Upload your video file or paste a YouTube URL</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI Processing</h3>
+                    <p>Our AI analyzes the video content and audio</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Generate Insights</h3>
+                    <p>Choose from transcript, summary, notes, or Q&A</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>Get Results</h3>
+                    <p>Download or share your generated content</p>
+                </div>
+            </div>
         </section>
 
         <!-- Features Section -->
-        <section class="features-section">
-            <h2 class="features-title">Why Choose Video Insight AI?</h2>
+        <section class="features-section" id="features">
+            <h2 class="section-title">Why Choose Video Insight AI?</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -131,8 +205,83 @@
                     </div>
                     <div class="feature-content">
                         <h3>Accurate Results</h3>
-                        <p>Our advanced AI models deliver precise summaries, notes, and answers.</p>
+                        <p>Our advanced AI models deliver precise transcripts, summaries, and answers.</p>
                     </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Multi-language Support</h3>
+                        <p>Process videos in multiple languages with high accuracy.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>User-Friendly</h3>
+                        <p>Intuitive interface designed for users of all technical levels.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-infinity"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Unlimited Possibilities</h3>
+                        <p>From education to business, transform how you consume video content.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <div class="about-content">
+                <h2 class="section-title">About Video Insight AI</h2>
+                <p>Video Insight AI is an innovative platform that leverages cutting-edge artificial intelligence to transform video content into actionable knowledge. Our technology extracts valuable information from videos, making it easier for educators, students, content creators, and professionals to digest and utilize video content more effectively.</p>
+                <p>With our platform, you can automatically generate accurate transcripts, concise summaries, structured notes, and interactive Q&A sessions from any video. Whether you're studying for exams, researching topics, or analyzing business content, Video Insight AI saves you time and enhances your learning experience.</p>
+            </div>
+            <div class="about-visual">
+                <div class="visual-element">
+                    <i class="fas fa-video"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section" id="contact">
+            <h2 class="section-title">Our Team</h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-photo">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Preetam</h3>
+                </div>
+                <div class="team-member">
+                    <div class="member-photo">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Sarika</h3>
+                </div>
+                <div class="team-member">
+                    <div class="member-photo">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Saikat</h3>
+                </div>
+                <div class="team-member">
+                    <div class="member-photo">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Krupa</h3>
                 </div>
             </div>
         </section>
@@ -147,10 +296,10 @@
             </div>
 
             <div class="footer-links">
-                <a href="#">About</a>
+                <a href="#about">About</a>
                 <a href="#">Privacy Policy</a>
                 <a href="#">Terms of Service</a>
-                <a href="#">Contact</a>
+                <a href="#contact">Contact</a>
             </div>
 
             <div class="social-icons">

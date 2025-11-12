@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Transcript | Video Insight AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transcript.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-brain-circuit"></i>
+                <span>Video Insight AI</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('home') }}#features">Features</a></li>
+                    <li><a href="{{ url_for('home') }}#how-it-works">How It Works</a></li>
+                    <li><a href="{{ url_for('home') }}#about">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <div class="back-button">
+                    <a href="{{ url_for('home') }}" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Home
+                    </a>
+                </div>
+                <h1 class="page-title">
+                    <i class="fas fa-file-alt"></i>
+                    Video Transcript
+                </h1>
+                <p class="page-subtitle">Get accurate transcript of your video content with translation capabilities</p>
+            </div>
+            <div class="header-actions">
+                <button class="cta-button secondary" id="translate-btn">
+                    <i class="fas fa-language"></i>
+                    Translate to English
+                </button>
+                <button class="cta-button" id="download-btn">
+                    <i class="fas fa-download"></i>
+                    Download Transcript
+                </button>
+            </div>
+        </section>
+
+        <!-- Transcript Content -->
+        <section class="transcript-section">
+            <div class="transcript-container">
+                <div class="transcript-header">
+                    <div class="transcript-info">
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Duration: <span id="video-duration">--:--</span></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-font"></i>
+                            <span>Words: <span id="word-count">0</span></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-language"></i>
+                            <span>Language: <span id="language-detected">Detecting...</span></span>
+                        </div>
+                    </div>
+                    <div class="transcript-controls">
+                        <button class="control-btn" id="copy-btn" title="Copy Transcript">
+                            <i class="far fa-copy"></i>
+                        </button>
+                        <button class="control-btn" id="search-btn" title="Search Transcript">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transcript-content">
+                    <div class="content-placeholder" id="content-placeholder">
+                        <div class="placeholder-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3>No Transcript Available</h3>
+                        <p>Process a video first to generate the transcript</p>
+                        <a href="{{ url_for('home') }}" class="cta-button">
+                            <i class="fas fa-video"></i>
+                            Process Video
+                        </a>
+                    </div>
+
+                    <div class="transcript-text" id="transcript-text" style="display: none;">
+                        <div class="text-content" id="text-content">
+                            <!-- Transcript content will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="translation-section" id="translation-section" style="display: none;">
+                        <div class="translation-header">
+                            <h3>
+                                <i class="fas fa-language"></i>
+                                English Translation
+                            </h3>
+                            <div class="translation-info">
+                                <span class="translation-badge">Translated</span>
+                            </div>
+                        </div>
+                        <div class="translation-content" id="translation-content">
+                            <!-- Translated content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loading-state" style="display: none;">
+                    <div class="loading-spinner">
+                        <i class="fas fa-sync fa-spin"></i>
+                    </div>
+                    <h3>Generating Transcript</h3>
+                    <p>This may take a few moments...</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="error-state" style="display: none;">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Error Generating Transcript</h3>
+                    <p id="error-message">Unable to process the video. Please try again.</p>
+                    <button class="cta-button" id="retry-btn">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-preview">
+            <h2 class="section-title">Explore Other Features</h2>
+            <div class="features-grid">
+                <a href="{{ url_for('summarize_page') }}" class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Video Summary</h3>
+                    <p>Get concise summaries of your video content</p>
+                    <span class="feature-link">Try it now <i class="fas fa-arrow-right"></i></span>
+                </a>
+
+                <a href="{{ url_for('notes') }}" class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-sticky-note"></i>
+                    </div>
+                    <h3>Make Notes</h3>
+                    <p>Generate structured notes from your video</p>
+                    <span class="feature-link">Try it now <i class="fas fa-arrow-right"></i></span>
+                </a>
+
+                <a href="{{ url_for('qna') }}" class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Q&A Session</h3>
+                    <p>Ask questions and get instant AI answers</p>
+                    <span class="feature-link">Try it now <i class="fas fa-arrow-right"></i></span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-brain-circuit"></i>
+                <span>Video Insight AI</span>
+            </div>
+
+            <div class="footer-links">
+                <a href="{{ url_for('home') }}#about">About</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="{{ url_for('home') }}#contact">Contact</a>
+            </div>
+
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+
+            <p class="copyright">© 2025 Video Insight AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Search Modal -->
+    <div class="modal" id="search-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Search Transcript</h3>
+                <button class="close-modal" id="close-search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="search-input">
+                    <input type="text" id="search-input" placeholder="Enter search term...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="search-results" id="search-results">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/transcript.js') }}"></script>
+</body>
+</html>

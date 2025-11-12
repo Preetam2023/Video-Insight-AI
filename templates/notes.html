@@ -1,43 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Notes</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-  <style>
-    body {
-      background: linear-gradient(135deg, #141E30, #243B55);
-      font-family: 'Poppins', sans-serif;
-      color: white;
-      padding: 40px;
-    }
-    .content {
-      background: rgba(255,255,255,0.07);
-      border-radius: 20px;
-      max-width: 850px;
-      margin: auto;
-      padding: 40px;
-      box-shadow: 0 0 25px rgba(24,255,255,0.3);
-    }
-    h2 {
-      text-align: center;
-      background: linear-gradient(135deg, #ff8a00, #e52e71);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 25px;
-    }
-    pre {
-      white-space: pre-wrap;
-      line-height: 1.6;
-      font-size: 1.1rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Notes | Video Insight AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notes.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <div class="content">
-    <h2>Key Notes</h2>
-    <pre>{{ notes or "No notes available yet." }}</pre>
-  </div>
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-brain-circuit"></i>
+                <span>Video Insight AI</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('home') }}#features">Features</a></li>
+                    <li><a href="{{ url_for('home') }}#how-it-works">How It Works</a></li>
+                    <li><a href="{{ url_for('home') }}#about">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <div class="back-button">
+                    <a href="{{ url_for('home') }}" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Home
+                    </a>
+                </div>
+                <h1 class="page-title">
+                    <i class="fas fa-sticky-note"></i>
+                    Video Notes
+                </h1>
+                <p class="page-subtitle">Generate structured, organized notes from your video content automatically</p>
+            </div>
+            <div class="header-actions">
+                <button class="cta-button" id="generate-btn">
+                    <i class="fas fa-magic"></i>
+                    Generate Notes
+                </button>
+                <button class="cta-button secondary" id="download-btn">
+                    <i class="fas fa-download"></i>
+                    Download Notes
+                </button>
+            </div>
+        </section>
+
+        <!-- Notes Content -->
+        <section class="notes-section">
+            <div class="notes-container">
+                <div class="notes-header">
+                    <div class="notes-info">
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Processing Time: <span id="processing-time">--</span></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-font"></i>
+                            <span>Notes Length: <span id="notes-length">0</span> words</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Sections: <span id="sections-count">--</span></span>
+                        </div>
+                    </div>
+                    <div class="notes-controls">
+                        <button class="control-btn" id="copy-btn" title="Copy Notes">
+                            <i class="far fa-copy"></i>
+                        </button>
+                        <button class="control-btn" id="print-btn" title="Print Notes">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="control-btn" id="refresh-btn" title="Regenerate Notes">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="notes-content">
+                    <div class="content-placeholder" id="content-placeholder">
+                        <div class="placeholder-icon">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <h3>No Notes Available</h3>
+                        <p>Generate structured notes to get organized insights from your video content</p>
+                        <button class="cta-button" id="generate-placeholder-btn">
+                            <i class="fas fa-magic"></i>
+                            Generate Notes
+                        </button>
+                    </div>
+
+                    <div class="notes-result" id="notes-result" style="display: none;">
+                        <div class="result-header">
+                            <h3>
+                                <i class="fas fa-sparkles"></i>
+                                AI-Generated Notes
+                            </h3>
+                            <div class="result-badges">
+                                <span class="badge primary">Structured</span>
+                                <span class="badge success">Organized</span>
+                                <span class="badge info">Detailed</span>
+                            </div>
+                        </div>
+                        
+                        <div class="notes-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-text-width"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="total-words">0</span>
+                                    <span class="stat-label">Total Words</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-heading"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="total-sections">0</span>
+                                    <span class="stat-label">Sections</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-list-ul"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="total-points">0</span>
+                                    <span class="stat-label">Key Points</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes-structure" id="notes-structure">
+                            <!-- Notes content will be loaded here -->
+                        </div>
+
+                        <div class="notes-actions">
+                            <button class="action-btn" id="export-pdf-btn">
+                                <i class="fas fa-file-pdf"></i>
+                                Export as PDF
+                            </button>
+                            <button class="action-btn secondary" id="share-notes-btn">
+                                <i class="fas fa-share-alt"></i>
+                                Share Notes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loading-state" style="display: none;">
+                    <div class="loading-spinner">
+                        <i class="fas fa-sync fa-spin"></i>
+                    </div>
+                    <h3>Generating Structured Notes</h3>
+                    <p>Our AI is analyzing the video content and creating organized notes...</p>
+                    <div class="loading-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <span class="progress-text" id="progress-text">Processing...</span>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="error-state" style="display: none;">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Error Generating Notes</h3>
+                    <p id="error-message">Unable to process the video. Please try again.</p>
+                    <button class="cta-button" id="retry-btn">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-preview">
+            <h2 class="section-title">Explore Other Features</h2>
+            <div class="features-grid">
+                <a href="{{ url_for('transcript') }}" class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Video Transcript</h3>
+                    <p>Get accurate transcript of your video content</p>
+                    <span class="feature-link">Try it now <i class="fas fa-arrow-right"></i></span>
+                </a>
+
+                <a href="{{ url_for('summarize_page') }}" class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Video Summary</h3>
+                    <p>Get concise summaries of your video content</p>
+                    <span class="feature-link">Try it now <i class="fas fa-arrow-right"></i></span>
+                </a>
+
+                <a href="{{ url_for('qna') }}" class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Q&A Session</h3>
+                    <p>Ask questions and get instant AI answers</p>
+                    <span class="feature-link">Try it now <i class="fas fa-arrow-right"></i></span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-brain-circuit"></i>
+                <span>Video Insight AI</span>
+            </div>
+
+            <div class="footer-links">
+                <a href="{{ url_for('home') }}#about">About</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="{{ url_for('home') }}#contact">Contact</a>
+            </div>
+
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+
+            <p class="copyright">© 2025 Video Insight AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/notes.js') }}"></script>
 </body>
 </html>
-
