@@ -1,5 +1,1 @@
-<<<<<<< HEAD
- In this part, there will be inheritance, polymorphism, we will cover the important concepts of this method, implement them and then solve practice questions based on them . The del keyword is used to delete object properties or the entity itself any object . In other languages, if we make any variable or any method public, then it generally means that we call that method or that attribute as a class. Can also be accessed from outside like till now if I have created a student then in student I can write s1.n What am I doing from the scope of my class. I can access the student s name outside the class .
-=======
  Retrieve Augmented Generation or RAG is a technique that makes generative AI models more accurate and reliable by bringing facts from external sources . With this, LLMs are able to answer general prompts faster . When something has to be generated on a current or more specific topic, then this technique becomes even more useful .
->>>>>>> 5d057f6 (frontend changed and functionality updated)
