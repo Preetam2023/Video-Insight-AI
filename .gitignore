@@ -5,7 +5,12 @@ __pycache__/
 
 # C extensions
 *.so
-
+# Ignore all data files
+data/text_chunks
+data/transcripts/
+data/uploads/
+data/vectorized file
+data/vectors
 # Distribution / packaging
 .Python
 build/
