@@ -24,17 +24,7 @@ fileInput.addEventListener("change", async (e) => {
           const data = await res.json();
 
           if (data.status === "success") {
-              uploadStatus.innerHTML = `
-                  <div style="text-align: center; margin-top: 10px;">
-                      <p style="color: var(--accent);"><i class="fas fa-check-circle"></i> Transcript ready!</p>
-                      <p style="color: var(--primary); font-size: 0.9rem; margin-top: 5px;">
-                          <i class="fas fa-sync fa-spin"></i> Other features are being processed in background...
-                      </p>
-                      <div style="background: #f8f8ff; padding: 10px; border-radius: 5px; margin-top: 10px; text-align: left;">
-                          <strong>Transcript Preview:</strong><br>
-                          ${data.transcript_preview || 'Preview not available'}
-                      </div>
-                  </div>`;
+            uploadStatus.innerHTML = `<p style="color: var(--accent); text-align: center; margin-top: 10px;"><i class="fas fa-check-circle"></i> Video processed successfully! Select an analysis option below.</p>`;
               optionsSection.style.display = "block";
               optionsSection.classList.add("visible");
               
@@ -77,17 +67,7 @@ processButton.addEventListener("click", async () => {
       const data = await res.json();
 
       if (data.status === "success") {
-          uploadStatus.innerHTML = `
-              <div style="text-align: center; margin-top: 10px;">
-                  <p style="color: var(--accent);"><i class="fas fa-check-circle"></i> YouTube video processed successfully!</p>
-                  <p style="color: var(--primary); font-size: 0.9rem; margin-top: 5px;">
-                      <i class="fas fa-sync fa-spin"></i> Other features are being processed in background...
-                  </p>
-                  <div style="background: #f8f8ff; padding: 10px; border-radius: 5px; margin-top: 10px; text-align: left;">
-                      <strong>Transcript Preview:</strong><br>
-                      ${data.transcript_preview || 'Preview not available'}
-                  </div>
-              </div>`;
+        uploadStatus.innerHTML = `<p style="color: var(--accent); text-align: center; margin-top: 10px;"><i class="fas fa-check-circle"></i> YouTube video processed successfully! Select an analysis option below.</p>`;
           optionsSection.style.display = "block";
           optionsSection.classList.add("visible");
           
@@ -103,71 +83,34 @@ processButton.addEventListener("click", async () => {
   }
 });
 
-// ---------------- BACKGROUND PROCESSING STATUS CHECK ----------------
-function startBackgroundStatusCheck() {
-  let checkCount = 0;
-  const maxChecks = 60; // Check for up to 5 minutes (5 seconds interval)
-  
-  const checkInterval = setInterval(async () => {
+  // ---------------- BACKGROUND PROCESSING STATUS CHECK ----------------
+  function startBackgroundStatusCheck() {
+    let checkCount = 0;
+    const maxChecks = 60; // Check for up to 5 minutes (5 seconds interval)
+    
+    const checkInterval = setInterval(async () => {
       checkCount++;
       
       try {
-          const response = await fetch('/check_processing_status');
-          const data = await response.json();
-          
-          if (data.status === 'completed') {
-              clearInterval(checkInterval);
-              updateProcessingStatus('completed');
-          } else if (data.status === 'partial') {
-              updateProcessingStatus('partial', data.completed_files.length, data.total_files);
-          } else {
-              updateProcessingStatus('processing', data.completed_files.length, data.total_files);
-          }
-          
-          // Stop checking after max attempts
-          if (checkCount >= maxChecks) {
-              clearInterval(checkInterval);
-              updateProcessingStatus('timeout');
-          }
+        const response = await fetch('/check_processing_status');
+        const data = await response.json();
+        
+        if (data.status === 'completed') {
+          clearInterval(checkInterval);
+          console.log("Background processing completed successfully");
+        }
+        
+        // Stop checking after max attempts
+        if (checkCount >= maxChecks) {
+          clearInterval(checkInterval);
+          console.log("Background processing check timeout");
+        }
       } catch (error) {
-          console.error('Error checking processing status:', error);
+        console.error('Error checking processing status:', error);
       }
-  }, 5000); // Check every 5 seconds
-}
-
-function updateProcessingStatus(status, completed = 0, total = 0) {
-  const statusElement = document.querySelector('.processing-status') || createStatusElement();
-  
-  switch(status) {
-      case 'completed':
-          statusElement.innerHTML = `<p style="color: var(--accent); text-align: center; margin-top: 5px;">
-              <i class="fas fa-check-circle"></i> All features are now ready!
-          </p>`;
-          break;
-      case 'partial':
-          statusElement.innerHTML = `<p style="color: var(--primary); text-align: center; margin-top: 5px;">
-              <i class="fas fa-sync fa-spin"></i> Processing... (${completed}/${total} features ready)
-          </p>`;
-          break;
-      case 'processing':
-          statusElement.innerHTML = `<p style="color: var(--primary); text-align: center; margin-top: 5px;">
-              <i class="fas fa-sync fa-spin"></i> Processing features... (${completed}/${total} ready)
-          </p>`;
-          break;
-      case 'timeout':
-          statusElement.innerHTML = `<p style="color: var(--warning); text-align: center; margin-top: 5px;">
-              <i class="fas fa-exclamation-triangle"></i> Processing taking longer than expected...
-          </p>`;
-          break;
+    }, 5000); // Check every 5 seconds
   }
-}
 
-function createStatusElement() {
-  const statusElement = document.createElement('div');
-  statusElement.className = 'processing-status';
-  uploadStatus.appendChild(statusElement);
-  return statusElement;
-}
 
 // ---------------- OPTION CARDS INTERACTION ----------------
 const optionCards = document.querySelectorAll(".option-card");

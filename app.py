@@ -113,7 +113,7 @@ def process_video():
                 'status': 'success',
                 'transcript_ready': True,
                 'transcript_path': transcript_path,
-                'message': 'Transcript ready! Other features are being processed in background...',
+                'message': 'Video processed successfully!',
                 'transcript_preview': transcript_content[:500] + "..." if len(transcript_content) > 500 else transcript_content
             })
         else:
