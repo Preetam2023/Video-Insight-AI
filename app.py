@@ -16,8 +16,10 @@ from utils.text_preprocessing.chunker import chunk_and_save
 from utils.text_preprocessing.vectorizer import vectorize_chunks
 from utils.llm_features.summarizer import generate_summary
 from utils.llm_features.notes_generator import generate_detailed_notes
+from utils.llm_features.qna_generator import answer_question, get_qna_status
 
 load_dotenv()
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -389,6 +391,42 @@ def translate_transcript():
         logger.error(f"Translation error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)})
 
+
+@app.route('/ask_question', methods=['POST'])
+def ask_question():
+    """Handle Q&A requests"""
+    try:
+        data = request.get_json()
+        question = data.get('question', '').strip()
+        
+        if not question:
+            return jsonify({
+                'status': 'error',
+                'answer': 'Please provide a question.'
+            })
+        
+        # Get answer from Q&A system
+        result = answer_question(question)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error in ask_question route: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'answer': 'Sorry, I encountered an error processing your question.'
+        })
+
+@app.route('/qna_status')
+def qna_status():
+    """Check Q&A system status"""
+    try:
+        status = get_qna_status()
+        return jsonify(status)
+    except Exception as e:
+        logger.error(f"Error getting Q&A status: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)})
+    
 # ------------------- MAIN -------------------
 if __name__ == '__main__':
     app.run(debug=True)
