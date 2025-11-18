@@ -128,6 +128,9 @@ def background_processing(transcript_path):
     try:
         print("[BACKGROUND] Starting background processing...")
         
+        # Clean up old files first to avoid conflicts
+        cleanup_old_processing_files()
+        
         # Translation
         print("[BACKGROUND] Translating to English...")
         output_path = translate_to_eng(transcript_path)
@@ -149,6 +152,35 @@ def background_processing(transcript_path):
     except Exception as e:
         print(f"[BACKGROUND ERROR] Background processing failed: {e}")
 
+def cleanup_old_processing_files():
+    """Clean up old processing files to prevent conflicts"""
+    try:
+        import glob
+        import shutil
+        
+        # Clean transcript files
+        transcript_files = [
+            "data/transcripts/transcript_english.txt",
+            "data/transcripts/cleaned_transcript.txt",
+            "data/transcripts/summary.txt",
+            "data/transcripts/detailed_notes.txt"
+        ]
+        
+        for file_path in transcript_files:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                print(f"[CLEANUP] Removed: {file_path}")
+        
+        # Clean chunks directory
+        chunks_dir = "data/chunks"
+        if os.path.exists(chunks_dir):
+            shutil.rmtree(chunks_dir)
+            os.makedirs(chunks_dir)
+            print(f"[CLEANUP] Cleaned: {chunks_dir}")
+            
+    except Exception as e:
+        print(f"[CLEANUP ERROR] Failed to clean old files: {e}")
+        
 @app.route('/check_processing_status')
 def check_processing_status():
     """Check if background processing is complete"""
@@ -322,28 +354,40 @@ def translate_transcript():
         data = request.get_json()
         transcript = data.get('transcript', '')
         
-        # Your translation logic here
-        # For now, we'll just return the English version if it exists
-        english_path = "data/transcripts/transcript_english.txt"
+        # Use the current processed video's English transcript
+        # Check multiple possible locations for the English transcript
+        possible_paths = [
+            "data/transcripts/transcript_english.txt",
+            "data/transcripts/transcript_english_1.txt",  # Add versioning if needed
+            "data/transcripts/current_transcript_english.txt"
+        ]
         
-        if os.path.exists(english_path):
-            with open(english_path, 'r', encoding='utf-8') as f:
-                english_transcript = f.read()
-            
+        english_transcript = None
+        english_path = None
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    english_transcript = f.read()
+                english_path = path
+                break
+        
+        if english_transcript:
             return jsonify({
                 'status': 'success',
                 'translated_text': english_transcript
             })
         else:
+            # If no English transcript exists, try to translate on the fly
+            # For now, return error - you can implement real-time translation here
             return jsonify({
                 'status': 'error',
-                'message': 'English translation not available'
+                'message': 'English translation not available for current video'
             })
             
     except Exception as e:
         logger.error(f"Translation error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)})
-    
 
 # ------------------- MAIN -------------------
 if __name__ == '__main__':

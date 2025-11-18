@@ -519,7 +519,12 @@ nav ul li a:hover::after {
 /* Loading State */
 .loading-state {
     text-align: center;
-    padding: 80px 20px;
+    padding: 40px 20px; /* Reduced from 80px to 40px */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; /* Added to ensure proper centering */
 }
 
 .loading-spinner {

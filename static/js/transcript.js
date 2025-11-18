@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentTranscript = "";
     let currentTranslation = "";
     let isTranslated = false;
+    let translationCheckInterval = null;
 
     // Initialize the page
     initPage();
@@ -66,8 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Show loading state
             showLoadingState('Loading transcript...');
             
-            // Check if we have transcript data - FIXED: using correct endpoint
-            const response = await fetch('/get_transcript');
+            // Add timestamp to avoid cached responses
+            const response = await fetch('/get_transcript?' + new Date().getTime());
             const data = await response.json();
             
             if (data.status === 'success' && data.transcript) {
@@ -82,6 +83,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Show translation button if English version exists
                 if (currentTranslation) {
                     translateBtn.style.display = 'inline-flex';
+                    // Clear any existing interval since translation is available
+                    if (translationCheckInterval) {
+                        clearInterval(translationCheckInterval);
+                    }
+                } else {
+                    // Start checking for translation availability
+                    startTranslationAvailabilityCheck();
                 }
             } else {
                 showPlaceholderState();
@@ -90,6 +98,43 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error('Error loading transcript:', error);
             showPlaceholderState();
         }
+    }
+
+    function startTranslationAvailabilityCheck() {
+        // Clear any existing interval
+        if (translationCheckInterval) {
+            clearInterval(translationCheckInterval);
+        }
+        
+        // Check every 3 seconds for translation availability
+        translationCheckInterval = setInterval(async () => {
+            try {
+                const response = await fetch('/get_transcript?' + new Date().getTime());
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.english_transcript) {
+                    // Translation is now available!
+                    currentTranslation = data.english_transcript;
+                    translateBtn.style.display = 'inline-flex';
+                    showToast('Translation is now available!');
+                    
+                    // Clear the interval
+                    clearInterval(translationCheckInterval);
+                    translationCheckInterval = null;
+                }
+            } catch (error) {
+                console.error('Error checking translation availability:', error);
+            }
+        }, 3000); // Check every 3 seconds
+        
+        // Auto-stop after 2 minutes (120 seconds) to prevent infinite checking
+        setTimeout(() => {
+            if (translationCheckInterval) {
+                clearInterval(translationCheckInterval);
+                translationCheckInterval = null;
+                console.log('Translation availability check stopped after 2 minutes');
+            }
+        }, 120000);
     }
 
     function displayTranscript(transcript) {
@@ -153,13 +198,16 @@ document.addEventListener("DOMContentLoaded", () => {
             showLoadingState('Translating to English...');
             translateBtn.disabled = true;
             
-            // Call translation endpoint
+            // Call translation endpoint directly
             const response = await fetch('/translate_transcript', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ transcript: currentTranscript })
+                body: JSON.stringify({ 
+                    transcript: currentTranscript,
+                    timestamp: new Date().getTime() // Add timestamp to avoid caching
+                })
             });
             
             const data = await response.json();
@@ -169,13 +217,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 displayTranslation(currentTranslation);
                 isTranslated = true;
                 translateBtn.innerHTML = '<i class="fas fa-sync"></i>Show Original';
+                
+                // Update the button to show translation is available
+                translateBtn.style.display = 'inline-flex';
             } else {
-                throw new Error(data.message || 'Translation failed');
+                throw new Error(data.message || 'Translation not available yet. Please wait a moment and try again.');
             }
             
         } catch (error) {
             console.error('Translation error:', error);
-            showError('Translation failed. Please try again.');
+            showError(error.message || 'Translation failed. Please try again.');
+            
+            // Reset translation state on error
+            isTranslated = false;
+            translateBtn.innerHTML = '<i class="fas fa-language"></i>Translate to English';
         } finally {
             hideLoadingState();
             translateBtn.disabled = false;
