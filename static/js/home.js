@@ -5,9 +5,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const urlInput = document.getElementById("video-url");
   const processButton = document.querySelector(".url-input .cta-button");
   const optionsSection = document.querySelector(".options-section");
+  
+  // Demo video elements
+  const watchDemoBtn = document.getElementById("watch-demo-btn");
+  const heroPlayBtn = document.getElementById("hero-play-btn");
+  const tryFreeBtn = document.getElementById("try-free-btn");
+  const demoModal = document.getElementById("demo-modal");
+  const closeBtn = document.querySelector(".close-btn");
 
   // Hide the 4 functional cards initially
   optionsSection.style.display = "none";
+
+  // ---------------- DEMO VIDEO FUNCTIONALITY ----------------
+  function openDemoModal() {
+    demoModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDemoModal() {
+    demoModal.style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+
+  // Event listeners for demo video
+  watchDemoBtn.addEventListener("click", openDemoModal);
+  heroPlayBtn.addEventListener("click", openDemoModal);
+  
+  // Try Free button scrolls to input section
+  tryFreeBtn.addEventListener("click", () => {
+    document.querySelector('.input-section').scrollIntoView({ 
+      behavior: 'smooth' 
+    });
+  });
+
+  closeBtn.addEventListener("click", closeDemoModal);
+
+  // Close modal when clicking outside
+  window.addEventListener("click", (e) => {
+    if (e.target === demoModal) {
+      closeDemoModal();
+    }
+  });
+
+  // Close modal with Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && demoModal.style.display === "block") {
+      closeDemoModal();
+    }
+  });
 
 // ---------------- FILE UPLOAD HANDLER ----------------
 fileInput.addEventListener("change", async (e) => {

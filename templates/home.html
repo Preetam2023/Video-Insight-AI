@@ -44,8 +44,11 @@
                 <h1>Transform Videos into <span class="highlight">Actionable Knowledge</span></h1>
                 <p>Upload a video or paste a YouTube link to generate transcripts, summaries, notes, and Q&A automatically with our advanced AI technology.</p>
                 <div class="hero-buttons">
-                    <button class="cta-button primary">Try It Free</button>
-                    <button class="cta-button secondary">Watch Demo</button>
+                    <button class="cta-button primary" id="try-free-btn">Try It Free</button>
+                    <button class="cta-button secondary" id="watch-demo-btn">
+                        <i class="fas fa-play-circle"></i>
+                        Watch Demo
+                    </button>
                 </div>
             </div>
             <div class="hero-visual">
@@ -67,7 +70,7 @@
                 </div>
                 <div class="main-visual">
                     <div class="video-preview">
-                        <div class="play-button">
+                        <div class="play-button" id="hero-play-btn">
                             <i class="fas fa-play"></i>
                         </div>
                     </div>
@@ -75,6 +78,30 @@
             </div>
         </div>
     </section>
+
+    <!-- Demo Video Modal -->
+    <div id="demo-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Video Insight AI - Demo</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="video-container">
+                    <iframe 
+                        src="https://drive.google.com/file/d/1fxSionf4ZqEKSw-gwgcjK2PA6AArmuyz/preview" 
+                        width="100%" 
+                        height="400" 
+                        allow="autoplay; fullscreen" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="video-description">
+                    <p>Watch how Video Insight AI transforms videos into actionable knowledge with just a few clicks.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Input Section -->
     <main class="container">
@@ -259,27 +286,35 @@
             <div class="team-grid">
                 <div class="team-member">
                     <div class="member-photo">
-                        <i class="fas fa-user"></i>
+                        <img src="{{ url_for('static', filename='images/preetam.jpg') }}" alt="Preetam" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <i class="fas fa-user" style="display: none;"></i>
                     </div>
                     <h3>Preetam</h3>
+                    <p>Project Lead</p>
                 </div>
                 <div class="team-member">
                     <div class="member-photo">
-                        <i class="fas fa-user"></i>
+                        <img src="{{ url_for('static', filename='images/sarika.jpg') }}" alt="Sarika" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <i class="fas fa-user" style="display: none;"></i>
                     </div>
                     <h3>Sarika</h3>
+                    <p>AI Developer</p>
                 </div>
                 <div class="team-member">
                     <div class="member-photo">
-                        <i class="fas fa-user"></i>
+                        <img src="{{ url_for('static', filename='images/saikat.jpg') }}" alt="Saikat" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <i class="fas fa-user" style="display: none;"></i>
                     </div>
                     <h3>Saikat</h3>
+                    <p>Backend Developer</p>
                 </div>
                 <div class="team-member">
                     <div class="member-photo">
-                        <i class="fas fa-user"></i>
+                        <img src="{{ url_for('static', filename='images/krupa.jpg') }}" alt="Krupa" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <i class="fas fa-user" style="display: none;"></i>
                     </div>
                     <h3>Krupa</h3>
+                    <p>Frontend Developer</p>
                 </div>
             </div>
         </section>

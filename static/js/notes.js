@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let structuredNotes = [];
     let totalWordCount = 0;
     let totalKeyPoints = 0;
+    let retryCount = 0;
+    const MAX_RETRIES = 10;
+    const RETRY_DELAY = 3000;
 
     // Initialize the page
     initPage();
@@ -74,7 +77,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentNotes = data.notes;
                 processAndDisplayNotes(currentNotes);
                 updateStats(data.word_count || currentNotes.split(/\s+/).length);
+                if (data.processing_time) {
+                    updateProcessingTime(data.processing_time);
+                }
                 hideLoadingState();
+            } else if (data.status === 'processing') {
+                showProcessingState(data.message);
+                // Auto-retry after delay
+                setTimeout(checkForExistingNotes, RETRY_DELAY);
             } else {
                 showPlaceholderState();
             }
@@ -88,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             showLoadingState();
             startProgressAnimation();
+            retryCount = 0;
             
             const response = await fetch('/generate_notes', {
                 method: 'POST',
@@ -102,17 +113,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentNotes = data.notes;
                 processAndDisplayNotes(currentNotes);
                 updateStats(data.word_count || currentNotes.split(/\s+/).length);
-                updateProcessingTime();
+                if (data.processing_time) {
+                    updateProcessingTime(data.processing_time);
+                } else {
+                    updateProcessingTime();
+                }
                 hideLoadingState();
                 
                 showToast('Structured notes generated successfully!');
+            } else if (data.status === 'processing') {
+                // Video is still processing
+                showProcessingState(data.message);
+                // Auto-retry after delay
+                retryCount++;
+                if (retryCount < MAX_RETRIES) {
+                    setTimeout(handleGenerateNotes, RETRY_DELAY);
+                } else {
+                    showError('Video processing is taking too long. Please try again later.');
+                }
             } else {
-                throw new Error(data.error || 'Notes generation failed');
+                throw new Error(data.message || data.error || 'Notes generation failed');
             }
             
         } catch (error) {
             console.error('Notes generation error:', error);
-            showError('Failed to generate notes. Please try again.');
+            showError('Failed to generate notes: ' + error.message);
         }
     }
 
@@ -132,49 +157,93 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function parseStructuredNotes(notes) {
-        // This is a simplified parser - in real app, this would parse AI-structured output
         const sections = [];
         const lines = notes.split('\n').filter(line => line.trim());
         
         let currentSection = null;
         let currentSubsection = null;
+        let inKeyPoints = false;
+        let keyPoints = [];
         
         lines.forEach(line => {
             line = line.trim();
             
-            if (line.match(/^#\s+.+/) || line.match(/^[A-Z][^.]{10,}:$/)) {
-                // Main section
+            // Main section headers (starting with #)
+            if (line.match(/^#\s+.+/)) {
                 if (currentSection) {
                     sections.push(currentSection);
                 }
                 currentSection = {
                     title: line.replace(/^#\s+/, ''),
+                    content: [],
                     subsections: []
                 };
                 currentSubsection = null;
-            } else if (line.match(/^##\s+.+/) || line.match(/^-\s+[A-Z]/)) {
-                // Subsection
+                inKeyPoints = false;
+            }
+            // Subsection headers (starting with ##)
+            else if (line.match(/^##\s+.+/)) {
+                const title = line.replace(/^##\s+/, '');
+                
+                // Check if this is the Key Points section
+                if (title.toLowerCase().includes('key points')) {
+                    inKeyPoints = true;
+                    keyPoints = [];
+                } else {
+                    inKeyPoints = false;
+                }
+                
                 if (currentSection) {
                     currentSubsection = {
-                        title: line.replace(/^##\s+/, '').replace(/^-\s+/, ''),
+                        title: title,
                         points: []
                     };
                     currentSection.subsections.push(currentSubsection);
                 }
-            } else if (line.match(/^[•\-]\s+.+/) && currentSubsection) {
-                // Point item
-                currentSubsection.points.push(line.replace(/^[•\-]\s+/, ''));
-            } else if (line.length > 20 && currentSection && !currentSubsection) {
-                // Paragraph in main section
-                if (!currentSection.paragraphs) {
-                    currentSection.paragraphs = [];
+            }
+            // Numbered points (like "1. Point text")
+            else if (line.match(/^\d+\.\s+.+/) && inKeyPoints) {
+                const point = line.replace(/^\d+\.\s+/, '');
+                keyPoints.push(point);
+            }
+            // Bullet points (starting with -)
+            else if (line.match(/^-\s+.+/)) {
+                const point = line.replace(/^-\s+/, '');
+                if (currentSubsection) {
+                    if (!currentSubsection.points) currentSubsection.points = [];
+                    currentSubsection.points.push(point);
+                } else if (currentSection) {
+                    // If no subsection, add to main section content
+                    currentSection.content.push(point);
                 }
-                currentSection.paragraphs.push(line);
+            }
+            // Regular content lines
+            else if (line.length > 0 && !line.match(/^#/) && !line.match(/^##/)) {
+                if (currentSection && line.length > 5) { // Only add meaningful content
+                    currentSection.content.push(line);
+                }
             }
         });
         
+        // Add the last section
         if (currentSection) {
             sections.push(currentSection);
+        }
+        
+        // If we collected key points but no proper structure, create a Key Points section
+        if (keyPoints.length > 0 && sections.length > 0) {
+            const keyPointsSection = {
+                title: "Key Points",
+                points: keyPoints,
+                subsections: []
+            };
+            // Insert after Overview section or at the beginning
+            const overviewIndex = sections.findIndex(s => s.title.toLowerCase().includes('overview'));
+            if (overviewIndex !== -1) {
+                sections.splice(overviewIndex + 1, 0, keyPointsSection);
+            } else {
+                sections.splice(1, 0, keyPointsSection);
+            }
         }
         
         return sections.length > 0 ? sections : createFallbackStructure(notes);
@@ -183,26 +252,46 @@ document.addEventListener("DOMContentLoaded", () => {
     function createFallbackStructure(notes) {
         // Fallback structure if parsing fails
         return [{
-            title: "Main Points",
-            paragraphs: [notes],
+            title: "Content Notes",
+            content: [notes],
             subsections: []
         }];
     }
 
     function displayStructuredNotes(sections) {
-        notesStructure.innerHTML = sections.map((section, sectionIndex) => `
+        notesStructure.innerHTML = sections.map((section, sectionIndex) => {
+            // Check if this section has points (like Key Points)
+            const hasPoints = section.points && section.points.length > 0;
+            const hasContent = section.content && section.content.length > 0;
+            const hasSubsections = section.subsections && section.subsections.length > 0;
+            
+            return `
             <div class="section">
                 <div class="section-header">
                     <div class="section-icon">
-                        <i class="fas fa-folder${sectionIndex % 2 === 0 ? '-open' : ''}"></i>
+                        <i class="fas fa-${getSectionIcon(sectionIndex, section.title)}"></i>
                     </div>
                     <h4 class="section-title">${section.title}</h4>
                 </div>
                 <div class="section-content">
-                    ${section.paragraphs ? section.paragraphs.map(paragraph => `
+                    ${hasContent ? section.content.map(paragraph => `
                         <div class="paragraph">${paragraph}</div>
                     `).join('') : ''}
-                    ${section.subsections.map((subsection, subIndex) => `
+                    
+                    ${hasPoints ? `
+                        <div class="points-list">
+                            ${section.points.map((point, pointIndex) => `
+                                <div class="point-item">
+                                    <div class="point-icon">
+                                        <span class="point-number">${pointIndex + 1}</span>
+                                    </div>
+                                    <div class="point-text">${point}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${hasSubsections ? section.subsections.map((subsection, subIndex) => `
                         <div class="subsection">
                             <h5 class="subsection-title">
                                 <i class="fas fa-${getSubsectionIcon(subIndex)}"></i>
@@ -221,10 +310,25 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
                             ` : ''}
                         </div>
-                    `).join('')}
+                    `).join('') : ''}
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
+    }
+
+    function getSectionIcon(index, title) {
+        const lowerTitle = title.toLowerCase();
+        
+        if (lowerTitle.includes('overview') || lowerTitle.includes('summary')) return 'file-alt';
+        if (lowerTitle.includes('topic')) return 'tags';
+        if (lowerTitle.includes('key point')) return 'key';
+        if (lowerTitle.includes('additional')) return 'info-circle';
+        if (lowerTitle.includes('takeaway')) return 'lightbulb';
+        if (lowerTitle.includes('application')) return 'rocket';
+        
+        const icons = ['file-alt', 'clipboard-list', 'sticky-note', 'book', 'graduation-cap'];
+        return icons[index % icons.length];
     }
 
     function getSubsectionIcon(index) {
@@ -239,11 +343,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateDetailedStats(sections) {
-        const sectionCount = sections.length;
-        const totalPoints = sections.reduce((acc, section) => 
-            acc + section.subsections.reduce((subAcc, subsection) => 
-                subAcc + (subsection.points ? subsection.points.length : 0), 0), 0
-        );
+        let sectionCount = sections.length;
+        let totalPoints = 0;
+        
+        sections.forEach(section => {
+            // Count points in main section
+            if (section.points) {
+                totalPoints += section.points.length;
+            }
+            // Count points in subsections
+            if (section.subsections) {
+                section.subsections.forEach(subsection => {
+                    if (subsection.points) {
+                        totalPoints += subsection.points.length;
+                    }
+                });
+            }
+        });
         
         totalKeyPoints = totalPoints;
         sectionsCountEl.textContent = sectionCount;
@@ -251,9 +367,13 @@ document.addEventListener("DOMContentLoaded", () => {
         totalPointsEl.textContent = totalPoints.toLocaleString();
     }
 
-    function updateProcessingTime() {
-        const time = (Math.random() * 4 + 2).toFixed(1); // Random time between 2-6 seconds
-        processingTimeEl.textContent = `${time}s`;
+    function updateProcessingTime(customTime) {
+        if (customTime) {
+            processingTimeEl.textContent = `${customTime.toFixed(1)}s`;
+        } else {
+            const time = (Math.random() * 2 + 1).toFixed(1); // Faster expected time: 1-3 seconds
+            processingTimeEl.textContent = `${time}s`;
+        }
     }
 
     function handleDownload() {
@@ -285,10 +405,18 @@ document.addEventListener("DOMContentLoaded", () => {
             content += `${index + 1}. ${section.title}\n`;
             content += "=".repeat(section.title.length + 4) + "\n\n";
             
-            if (section.paragraphs) {
-                section.paragraphs.forEach(paragraph => {
+            if (section.content) {
+                section.content.forEach(paragraph => {
                     content += `${paragraph}\n\n`;
                 });
+            }
+            
+            if (section.points) {
+                content += "Key Points:\n";
+                section.points.forEach((point, pointIndex) => {
+                    content += `  ${pointIndex + 1}. ${point}\n`;
+                });
+                content += "\n";
             }
             
             section.subsections.forEach((subsection, subIndex) => {
@@ -340,7 +468,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     .section { margin-bottom: 30px; }
                     .section-header { background: #f0f0f0; padding: 10px; border-left: 4px solid #6C63FF; }
                     .points-list { margin-left: 20px; }
-                    .point-item { margin: 5px 0; }
+                    .point-item { margin: 5px 0; display: flex; align-items: flex-start; }
+                    .point-number { background: #6C63FF; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px; }
                     @media print {
                         body { margin: 0; }
                         .no-print { display: none; }
@@ -396,13 +525,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         if (confirm('Generate new notes? This will replace the current ones.')) {
+            clearPreviousNotes();
             handleGenerateNotes();
         }
     }
 
     function handleRetry() {
         hideErrorState();
+        retryCount = 0;
         handleGenerateNotes();
+    }
+
+    function clearPreviousNotes() {
+        currentNotes = "";
+        structuredNotes = [];
+        notesStructure.innerHTML = "";
+        notesResult.style.display = 'none';
+        contentPlaceholder.style.display = 'block';
+        retryCount = 0;
     }
 
     function startProgressAnimation() {
@@ -435,11 +575,38 @@ document.addEventListener("DOMContentLoaded", () => {
         contentPlaceholder.style.display = 'none';
         notesResult.style.display = 'none';
         errorState.style.display = 'none';
+        progressFill.style.width = '0%';
+        progressText.textContent = "Initializing...";
     }
 
     function hideLoadingState() {
         loadingState.style.display = 'none';
         progressFill.style.width = '0%';
+        retryCount = 0;
+    }
+
+    function showProcessingState(message) {
+        loadingState.style.display = 'block';
+        contentPlaceholder.style.display = 'none';
+        notesResult.style.display = 'none';
+        errorState.style.display = 'none';
+        
+        // Update progress text with processing message
+        progressText.textContent = message || 'Processing video content...';
+        
+        // Animate progress bar slowly to indicate waiting
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 0.5;
+            if (progress > 70) {
+                progress = 70; // Cap at 70% during processing
+            }
+            progressFill.style.width = `${progress}%`;
+            
+            if (!loadingState.style.display || loadingState.style.display === 'none') {
+                clearInterval(interval);
+            }
+        }, 500);
     }
 
     function showPlaceholderState() {
@@ -447,6 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
         notesResult.style.display = 'none';
         loadingState.style.display = 'none';
         errorState.style.display = 'none';
+        retryCount = 0;
     }
 
     function showError(message) {
@@ -455,6 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
         contentPlaceholder.style.display = 'none';
         notesResult.style.display = 'none';
         loadingState.style.display = 'none';
+        retryCount = 0;
     }
 
     function hideErrorState() {
@@ -510,6 +679,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 transform: translateX(100%);
                 opacity: 0;
             }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .point-number {
+            background: #6C63FF;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
         }
     `;
     document.head.appendChild(style);

@@ -182,6 +182,25 @@ def check_processing_status():
         
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+    
+def is_current_processing_complete():
+    """Check if current video processing is complete"""
+    try:
+        required_files = [
+            "data/transcripts/cleaned_transcript.txt",
+            "data/transcripts/transcript_english.txt"
+        ]
+        
+        # Check if files exist and have reasonable content
+        for file_path in required_files:
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+                if content and len(content) > 50:
+                    return True
+        return False
+    except:
+        return False
 
 @app.route('/summarize', methods=['POST'])
 def summarize_video():
@@ -214,49 +233,53 @@ def summarize_video():
 @app.route('/generate_notes', methods=['POST'])
 def generate_notes():
     try:
+        # Check if processing is complete
+        if not is_current_processing_complete():
+            return jsonify({
+                "status": "processing",
+                "message": "Video is still being processed. Please wait...",
+                "notes": None
+            }), 202  # Accepted but not ready
+        
         logger.info("Starting detailed notes generation using preprocessed chunks")
         
         # Generate detailed notes using preprocessed chunks
         from utils.llm_features.notes_generator import generate_detailed_notes
-        notes = generate_detailed_notes()
+        result = generate_detailed_notes()
         
-        word_count = len(notes.split())
-        logger.info(f"Detailed notes generated: {word_count} words")
-        
-        # Save notes to file
-        notes_path = "data/transcripts/detailed_notes.txt"
-        os.makedirs("data/transcripts", exist_ok=True)
-        with open(notes_path, "w", encoding="utf-8") as f:
-            f.write(notes)
-        
-        return jsonify({
-            "notes": notes,
-            "status": "success",
-            "word_count": word_count,
-            "message": "Detailed notes generated successfully"
-        })
-        
+        if result['status'] == 'success':
+            notes = result['notes']
+            word_count = result['word_count']
+            
+            logger.info(f"Detailed notes generated: {word_count} words")
+            
+            # Save notes to file
+            notes_path = "data/transcripts/detailed_notes.txt"
+            os.makedirs("data/transcripts", exist_ok=True)
+            with open(notes_path, "w", encoding="utf-8") as f:
+                f.write(notes)
+            
+            return jsonify({
+                "notes": notes,
+                "status": "success",
+                "word_count": word_count,
+                "processing_time": result.get('processing_time', 0),
+                "message": "Detailed notes generated successfully"
+            })
+        else:
+            return jsonify({
+                "status": result['status'],
+                "message": result['message'],
+                "notes": None
+            }), 400
+            
     except Exception as e:
         logger.error(f"Error in generate_notes route: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-        # Cleaning english text
-        print("[BACKGROUND] Cleaning transcript...")
-        cleaned_path = clean_and_save_transcript(output_path)
-
-        # Chunk cleaned transcript
-        print("[BACKGROUND] Chunking transcript...")
-        chunks_dir = chunk_and_save(cleaned_path)
-
-        # Vectorize chunks
-        print("[BACKGROUND] Vectorizing chunks...")
-        vectorized_path = vectorize_chunks(chunks_dir)
-
-        print("[BACKGROUND] All processing completed successfully!")
-        
-    except Exception as e:
-        print(f"[BACKGROUND ERROR] Background processing failed: {e}")
-
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "notes": None
+        }), 500
 
 @app.route('/get_transcript')
 def get_transcript():
